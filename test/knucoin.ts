@@ -1,9 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Contract } from "hardhat/internal/hardhat-network/stack-traces/model";
 import { KNUCoin } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 
 describe('KNUCoin ERC20 Contract', () => {
   let knuCoin: KNUCoin;
@@ -55,6 +53,19 @@ describe('KNUCoin ERC20 Contract', () => {
   });
 
   describe('Transactions', () => {
-    
+    it("should update balances after transfers", async function () {
+			const initialOwnerBalance = await knuCoin.balanceOf(owner.address);
+			await knuCoin.transfer(addr1.address, 100);
+			await knuCoin.transfer(addr2.address, 50);
+
+			const finalOwnerBalance = await knuCoin.balanceOf(owner.address);
+			expect(finalOwnerBalance).to.equal(initialOwnerBalance.sub(150));
+
+			const addr1Balance = await knuCoin.balanceOf(addr1.address);
+			expect(addr1Balance).to.equal(100);
+
+			const addr2Balance = await knuCoin.balanceOf(addr2.address);
+			expect(addr2Balance).to.equal(50);
+		});
   });
 })
