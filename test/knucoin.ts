@@ -54,18 +54,18 @@ describe('KNUCoin ERC20 Contract', () => {
 
   describe('Transactions', () => {
     it("should update balances after transfers", async function () {
-			const initialOwnerBalance = await knuCoin.balanceOf(owner.address);
-			await knuCoin.transfer(addr1.address, 100);
-			await knuCoin.transfer(addr2.address, 50);
+      const initialOwnerBalance = await knuCoin.balanceOf(owner.address);
+      await knuCoin.transfer(addr1.address, 100);
+      await knuCoin.transfer(addr2.address, 50);
 
-			const finalOwnerBalance = await knuCoin.balanceOf(owner.address);
-			expect(finalOwnerBalance).to.equal(initialOwnerBalance.sub(150));
+      const finalOwnerBalance = await knuCoin.balanceOf(owner.address);
+      expect(finalOwnerBalance).to.equal(initialOwnerBalance.sub(150));
 
-			const addr1Balance = await knuCoin.balanceOf(addr1.address);
-			expect(addr1Balance).to.equal(100);
+      const addr1Balance = await knuCoin.balanceOf(addr1.address);
+      expect(addr1Balance).to.equal(100);
 
-			const addr2Balance = await knuCoin.balanceOf(addr2.address);
-			expect(addr2Balance).to.equal(50);
-		});
+      const addr2Balance = await knuCoin.balanceOf(addr2.address);
+      expect(addr2Balance).to.equal(50);
+    });
   });
 })
