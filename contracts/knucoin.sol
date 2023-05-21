@@ -40,14 +40,4 @@ contract KNUCOIN is Ownable, Teachers, CTERC20 {
     function removeMember(uint64 issuer, uint64 memberId, uint128 arrangementId) external onlyOwner {
         _removeMember(issuer, memberId, arrangementId);
     }
-
-    // function finishArrangement(uint64 issuer, uint8 arrangementId) external onlyOwner _isTeacher(issuer) {
-    //     Arrangements.User[] memory members = getMembers(arrangementId);
-    //     uint32 reward = arrangements[arrangementId].reward;
-    //     _deleteArrangement(issuer, arrangementId);
-        
-    //     for (uint16 i = 0; i < members.length; i++) {
-    //         _mint(members[i].id, reward);
-    //     }
-    // }
 }

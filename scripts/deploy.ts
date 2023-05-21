@@ -4,7 +4,7 @@ async function main() {
   const lockedAmount = ethers.utils.parseEther("0.001");
 
   const KNUCoin = await ethers.getContractFactory("KNUCOIN");
-  const coin = await KNUCoin.deploy(475393530, "KNUCOIN", "KNUCN");
+  const coin = await KNUCoin.deploy(1234, "KNUCOIN", "KNUCN");
 
   await coin.deployed();
 
