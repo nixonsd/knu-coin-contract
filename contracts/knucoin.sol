@@ -1,23 +1,53 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "./Teachers.sol";
+import "./CTERC20.sol";
+import "./Arrangements.sol";
 
-contract KNUCoin is ERC20 {
-    address payable public owner;
+contract KNUCOIN is Ownable, Teachers, CTERC20 {
+    constructor(
+        uint64 issuer, 
+        string memory name_, 
+        string memory symbol_
+        ) CTERC20(name_, symbol_) Teachers(issuer) {}
 
-    constructor(uint256 initialSupply) ERC20('KNU Coin Token', "KNUCOIN") {
-        owner = payable(msg.sender);
-        _mint(msg.sender, initialSupply);
+    function mint(uint64 issuer, uint64 userId, uint32 amount) external onlyOwner _isTeacher(issuer) {
+        _mint(userId, amount);
     }
 
-    function mint(uint amount) external {
-        require(msg.sender == owner, "You aren't the owner");
-        _mint(msg.sender, amount);
+    function addTeacher(uint64 issuer, uint64 userId) external onlyOwner {
+        _addTeacher(issuer, userId);
     }
 
-    function burn(uint amount) external {
-        require(msg.sender == owner, "You aren't the owner");
-        _burn(msg.sender, amount);
+    function removeTeacher(uint64 issuer, uint64 userId) external onlyOwner {
+        _removeTeacher(issuer, userId);
     }
+
+    function createArrangement(uint64 issuer, uint32 reward) external onlyOwner {
+        _createArrangement(issuer, reward);
+    }
+
+    function removeArrangement(uint64 issuer, uint128 arrangementId) external onlyOwner {
+        _removeArrangement(issuer, arrangementId);
+    }
+
+    function addMember(uint64 issuer, uint64 memberId, uint128 arrangementId) external onlyOwner {
+        _addMember(issuer, memberId, arrangementId);
+    }
+
+    function removeMember(uint64 issuer, uint64 memberId, uint128 arrangementId) external onlyOwner {
+        _removeMember(issuer, memberId, arrangementId);
+    }
+
+    // function finishArrangement(uint64 issuer, uint8 arrangementId) external onlyOwner _isTeacher(issuer) {
+    //     Arrangements.User[] memory members = getMembers(arrangementId);
+    //     uint32 reward = arrangements[arrangementId].reward;
+    //     _deleteArrangement(issuer, arrangementId);
+        
+    //     for (uint16 i = 0; i < members.length; i++) {
+    //         _mint(members[i].id, reward);
+    //     }
+    // }
 }
