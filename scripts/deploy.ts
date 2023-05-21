@@ -3,8 +3,8 @@ import { ethers } from "hardhat";
 async function main() {
   const lockedAmount = ethers.utils.parseEther("0.001");
 
-  const KNUCoin = await ethers.getContractFactory("KNUCoin");
-  const coin = await KNUCoin.deploy({ value: lockedAmount });
+  const KNUCoin = await ethers.getContractFactory("KNUCOIN");
+  const coin = await KNUCoin.deploy(1234, "KNUCOIN", "KNUCN");
 
   await coin.deployed();
 
