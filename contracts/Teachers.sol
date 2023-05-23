@@ -34,12 +34,12 @@ contract Teachers is Arrangements {
     uint256 public constant arrangementLimit = 4;
     mapping(uint64 => Teacher) bearers;
 
-    function _createArrangement(uint64 issuer, uint32 reward) internal override _isTeacher(issuer) {
+    function _createArrangement(uint64 issuer, uint32 reward, bytes32 name) internal override _isTeacher(issuer) {
         require(bearers[issuer].arrangementIdList.length < arrangementLimit, "You exceed the arrangement limit");
         bearers[issuer].arrangements[arrangementIndex].listId = uint128(bearers[issuer].arrangementIdList.length);
         bearers[issuer].arrangements[arrangementIndex].isArrangement = true;
         bearers[issuer].arrangementIdList.push(arrangementIndex);
-        Arrangements._createArrangement(issuer, reward);
+        Arrangements._createArrangement(issuer, reward, name);
     }
 
     function _removeArrangement(uint64 issuer, uint128 arrangementId) internal override _isTeacher(issuer) {
@@ -79,8 +79,16 @@ contract Teachers is Arrangements {
         return bearers[teacherId].arrangementIdList;
     }
 
+    function getTotalArrangements(uint64 teacherId) public view returns(uint256) {
+        return bearers[teacherId].arrangementIdList.length;
+    }
+
     function isTeacher(uint64 id) public view returns(bool) {
         return bearers[id].bearer;
+    }
+
+    function isOwner(uint64 teacherId, uint128 arrangementId) public view returns(bool) {
+        return bearers[teacherId].arrangements[arrangementId].isArrangement;
     }
 
     function _addTeacher(uint64 issuer, uint64 id) internal _isTeacher(issuer) {

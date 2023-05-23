@@ -14,6 +14,7 @@ contract Arrangements {
     event MembershipEvent(uint128 indexed arrangementId, uint64 indexed memberId, MembershipStatus membershipStatus);
 
     struct Arrangement {
+        bytes32 name;
         uint32 reward;
         bool created;
         uint64[] memberList;
@@ -33,7 +34,8 @@ contract Arrangements {
     uint128 internal arrangementIndex;
     mapping(uint128 => Arrangement) arrangements;
 
-    function _createArrangement(uint64 issuer, uint32 reward) internal virtual {
+    function _createArrangement(uint64 issuer, uint32 reward, bytes32 name) internal virtual {
+        arrangements[arrangementIndex].name = name;
         arrangements[arrangementIndex].reward = reward;
         arrangements[arrangementIndex].created = true;
         emit ArrangementEvent(arrangementIndex, issuer, ArrangementStatus.ARRANGEMENT_CREATED);
@@ -98,11 +100,19 @@ contract Arrangements {
         return arrangements[arrangementId].memberList;
     }
 
-    function getRewardAmount(uint128 arrangementId) public view returns(uint32) {
-        return arrangements[arrangementId].reward;
+    function getArrangementData(uint128 arrangementId) public view returns(bytes32 name, uint32 reward) {
+        return (arrangements[arrangementId].name, arrangements[arrangementId].reward);
     }
 
     function getTotalMembers(uint128 arrangementId) public view returns(uint256) {
         return arrangements[arrangementId].memberList.length;
+    }
+
+    function arrangementExists(uint128 arrangementId) public view returns(bool) {
+        return arrangements[arrangementId].created;
+    }
+
+    function isMember(uint128 arrangementId, uint64 memberId) public view returns(bool) {
+        return arrangements[arrangementId].members[memberId].isMember;
     }
 }
