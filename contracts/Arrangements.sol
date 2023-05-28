@@ -10,109 +10,105 @@ contract Arrangements {
         USER_ADDED,
         USER_REMOVED
     }
-    event ArrangementEvent(uint128 indexed arrangementId, uint64 indexed userId, ArrangementStatus arrangementStatus);
-    event MembershipEvent(uint128 indexed arrangementId, uint64 indexed memberId, MembershipStatus membershipStatus);
+    event ArrangementEvent(uint128 indexed arrangementId, uint64 indexed userId, ArrangementStatus indexed arrangementStatus);
+    event MembershipEvent(uint128 indexed arrangementId, uint64 indexed memberId, MembershipStatus indexed membershipStatus);
 
     struct Arrangement {
         bytes32 name;
         uint32 reward;
+        uint64 creatorId;
         bool created;
         uint64[] memberList;
         mapping(uint64 => User) members;
     }
 
     struct User {
-        uint256 listId;
+        uint64 sequenceNumber;
         bool isMember;
     }
 
     modifier _isArrangement(uint128 arrangementId) {
-        require(arrangements[arrangementId].created, "Arrangement doesn't exist!");
+        require(isArrangement(arrangementId), "Arrangement doesn't exist!");
         _;
     }
     
-    uint128 internal arrangementIndex;
+    uint128 internal arrangementCount;
     mapping(uint128 => Arrangement) arrangements;
 
-    function _createArrangement(uint64 issuer, uint32 reward, bytes32 name) internal virtual {
-        arrangements[arrangementIndex].name = name;
-        arrangements[arrangementIndex].reward = reward;
-        arrangements[arrangementIndex].created = true;
-        emit ArrangementEvent(arrangementIndex, issuer, ArrangementStatus.ARRANGEMENT_CREATED);
+    function createArrangement(uint64 issuer, uint32 reward, bytes32 name) public virtual {
+        arrangements[arrangementCount].name = name;
+        arrangements[arrangementCount].reward = reward;
+        arrangements[arrangementCount].creatorId = issuer;
+        arrangements[arrangementCount].created = true;
+        emit ArrangementEvent(arrangementCount, issuer, ArrangementStatus.ARRANGEMENT_CREATED);
         unchecked {
-            ++arrangementIndex;
+            ++arrangementCount;
         }
     }
 
-    function _removeArrangement(uint64 issuer, uint128 arrangementId) internal virtual _isArrangement(arrangementId) {
+    function removeArrangement(uint64 issuer, uint128 arrangementId) public virtual 
+    _isArrangement(arrangementId) {
         delete arrangements[arrangementId];
         
         emit ArrangementEvent(arrangementId, issuer, ArrangementStatus.ARRANGEMENT_REMOVED);
     }
 
-    function _addMember(uint128 arrangementId, uint64 memberId) internal _isArrangement(arrangementId) {
-        if (!arrangements[arrangementId].members[memberId].isMember) {
-            arrangements[arrangementId].memberList.push(memberId);
-            arrangements[arrangementId].members[memberId].isMember = true;
-            arrangements[arrangementId].members[memberId].listId = arrangements[arrangementId].memberList.length - 1;
-            
-            emit MembershipEvent(arrangementId, memberId, MembershipStatus.USER_ADDED);
-        }
+    function addMember(uint64 issuer, uint64 memberId, uint128 arrangementId) public virtual 
+    _isArrangement(arrangementId) {
+        require(issuer == memberId || issuer == arrangements[arrangementId].creatorId, "You're not allowed!");
+        require(!arrangements[arrangementId].members[memberId].isMember, "The user is a member!");
+        arrangements[arrangementId].memberList.push(memberId);
+        arrangements[arrangementId].members[memberId].isMember = true;
+        arrangements[arrangementId].members[memberId].sequenceNumber = uint64(arrangements[arrangementId].memberList.length - 1);
+        
+        emit MembershipEvent(arrangementId, memberId, MembershipStatus.USER_ADDED);
     }
 
-    function _removeMember(uint128 arrangementId, uint64 memberId) internal _isArrangement(arrangementId) {
-        if (arrangements[arrangementId].members[memberId].isMember) {
-            uint256 length = arrangements[arrangementId].memberList.length;  
-            uint256 listId = arrangements[arrangementId].members[memberId].listId;
-            uint64 lastMemberId = arrangements[arrangementId].memberList[length - 1];
-            
-            arrangements[arrangementId].members[lastMemberId].listId = listId;
-            arrangements[arrangementId].memberList[listId] = lastMemberId;
-            arrangements[arrangementId].memberList.pop();
-            
-            delete arrangements[arrangementId].members[memberId];
+    function removeMember(uint64 issuer, uint64 memberId, uint128 arrangementId) public virtual 
+    _isArrangement(arrangementId) {
+        require(issuer == memberId || issuer == arrangements[arrangementId].creatorId, "You're not allowed!");
+        require(arrangements[arrangementId].members[memberId].isMember, "The user is not a member");
+        uint256 length = arrangements[arrangementId].memberList.length;  
+        uint64 sequenceNumber = arrangements[arrangementId].members[memberId].sequenceNumber;
+        uint64 last = arrangements[arrangementId].memberList[length - 1];
+        
+        delete arrangements[arrangementId].members[memberId];
 
-            emit MembershipEvent(arrangementId, memberId, MembershipStatus.USER_REMOVED);
-        }
+        arrangements[arrangementId].members[last].sequenceNumber = sequenceNumber;
+        arrangements[arrangementId].memberList[last] = last;
+        arrangements[arrangementId].memberList.pop();
+        
+        emit MembershipEvent(arrangementId, memberId, MembershipStatus.USER_REMOVED);
     }
 
-    function _addMemberBulk(uint128 arrangementId, uint64[] calldata memberIds) internal {
-        uint256 memberIdsLength = memberIds.length;
-        for (uint256 i = 0; i < memberIdsLength; ) {
-            _addMember(arrangementId, memberIds[i]);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function _removeMemberBulk(uint128 arrangementId, uint64[] calldata memberIds) internal {
-        uint256 memberIdsLength = memberIds.length;
-        for (uint256 i = 0; i < memberIdsLength; ) {
-            _removeMember(arrangementId, memberIds[i]);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function getMembers(uint128 arrangementId) public view returns(uint64[] memory) {
+    function getMembers(uint128 arrangementId) public view 
+    _isArrangement(arrangementId) returns(uint64[] memory) {
         return arrangements[arrangementId].memberList;
     }
 
-    function getArrangementData(uint128 arrangementId) public view returns(bytes32 name, uint32 reward) {
-        return (arrangements[arrangementId].name, arrangements[arrangementId].reward);
-    }
-
-    function getTotalMembers(uint128 arrangementId) public view returns(uint256) {
+    function getTotalMembers(uint128 arrangementId) public view 
+    _isArrangement(arrangementId) returns(uint256) {
         return arrangements[arrangementId].memberList.length;
     }
 
-    function arrangementExists(uint128 arrangementId) public view returns(bool) {
-        return arrangements[arrangementId].created;
+    function getArrangement(uint128 arrangementId) public view 
+    _isArrangement(arrangementId) returns(bytes32 name, uint32 reward, uint64 creatorId) {
+        return (
+            arrangements[arrangementId].name,
+            arrangements[arrangementId].reward,
+            arrangements[arrangementId].creatorId
+        );
+    }
+
+    function isCreator(uint128 arrangementId, uint64 memberId) public view returns(bool) {
+        return arrangements[arrangementId].creatorId == memberId;
     }
 
     function isMember(uint128 arrangementId, uint64 memberId) public view returns(bool) {
         return arrangements[arrangementId].members[memberId].isMember;
+    }
+
+    function isArrangement(uint128 arrangementId) public view returns(bool) {
+        return arrangements[arrangementId].created;
     }
 }

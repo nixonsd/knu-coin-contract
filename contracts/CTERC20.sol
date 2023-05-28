@@ -13,16 +13,13 @@ contract CTERC20 {
         _symbol = symbol_;
     }
 
-    function _updateBalance(uint64 userId, uint32 balance) internal {
-        _balances[userId] = balance;
-    }
-
     function _mint(uint64 userId, uint32 amount) internal {
         _balances[userId] += amount;
         emit Transfer(0, userId, amount);
     }
 
     function _redeem(uint64 userId, uint32 amount) internal {
+        require(_balances[userId] >= amount, "The user doesn't possess this much!");
         _balances[userId] -= amount;
         emit Transfer(userId, 0, amount);
     }
