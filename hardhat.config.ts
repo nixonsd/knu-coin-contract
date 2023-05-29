@@ -20,7 +20,11 @@ const config: HardhatUserConfig = {
     polygon: {
       url: 'https://polygon-rpc.comm',
       accounts: [ process.env.PRIVATE_KEY as string ],
-    }
+    },
+    polygon_mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      accounts: [ process.env.PRIVATE_KEY as string ],
+    },
   },
   etherscan: {
     apiKey: process.env.POLYGONSCAN_API_KEY as string,
