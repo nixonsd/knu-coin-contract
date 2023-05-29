@@ -18,7 +18,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     polygon: {
-      url: 'https://polygon-rpc.comm',
+      url: 'https://polygon-rpc.com',
       accounts: [ process.env.PRIVATE_KEY as string ],
     },
     polygon_mumbai: {
