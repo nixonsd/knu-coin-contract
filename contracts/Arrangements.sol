@@ -100,11 +100,11 @@ contract Arrangements {
         );
     }
 
-    function isCreator(uint128 arrangementId, uint64 memberId) public view returns(bool) {
+    function isCreator(uint64 memberId, uint128 arrangementId) public view returns(bool) {
         return arrangements[arrangementId].creatorId == memberId;
     }
 
-    function isMember(uint128 arrangementId, uint64 memberId) public view returns(bool) {
+    function isMember(uint64 memberId, uint128 arrangementId) public view returns(bool) {
         return arrangements[arrangementId].members[memberId].isMember;
     }
 
